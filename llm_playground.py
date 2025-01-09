@@ -6,7 +6,7 @@ import pytesseract
 from PIL import Image
 # import io
 
-API_KEY = "*****************************"
+API_KEY = "Q0faCy2mAxlwMwrL1BJJxfL4b1jbjgv9zWCAJF4F"
 cohere_client = cohere.Client(API_KEY)
 
 st.set_page_config(
