@@ -6,7 +6,7 @@ import pytesseract
 from PIL import Image
 from io import StringIO
 
-API_KEY = "Q5zKRhI14zbXktk8fx8kwdSYRYmYPHNkZPyVZxCF"
+API_KEY = "MzQ8iuWNNScljLkyXoMGyci22GZVg66Lu587Z51b"
 cohere_client = cohere.Client(API_KEY)
 
 # Page Configuration
@@ -21,7 +21,7 @@ st.set_page_config(
 st.sidebar.title("🤖 ChatBot Settings")
 st.sidebar.markdown("### LLM Model Selection")
 llm_model = st.sidebar.selectbox(
-    "Choose LLM Model:", ["command-nightly", "command-light", "command-light-nightly"]
+    "Choose LLM Model:", ["command-light", "command-nightly", "command-light-nightly"]
 )
 temperature = st.sidebar.slider("Temperature", 0.0, 1.0, 0.3, step=0.1)
 top_p = st.sidebar.slider("Top-P", 0.0, 1.0, 0.75, step=0.05)
@@ -69,6 +69,14 @@ if uploaded_file:
     except Exception as e:
         st.error(f"Error processing the file: {e}")
 
+
+MAX_DOCUMENT_TOKENS = 1500
+def truncate_text(content, max_tokens):
+    tokens = content.split()
+    return " ".join(tokens[:max_tokens])
+
+document_content = truncate_text(document_content, MAX_DOCUMENT_TOKENS)
+
 # Chat History Initialization
 if "chat_history" not in st.session_state:
     st.session_state["chat_history"] = []
@@ -89,7 +97,20 @@ if user_input := st.chat_input("Type your message here..."):
 
     # Display spinner while generating a response
     with st.spinner("Thinking..."):
-        prompt = f"Document content:\n{document_content}\n\nUser question: {user_input}\nAnswer:" if document_content else f"User question: {user_input}\nAnswer:"
+
+        MAX_DOC_TOKENS = 3500  # Adjust based on your model's limits and typical user input
+ 
+        # Truncate the document content if it exceeds the maximum token limit
+        if document_content:
+            truncated_content = document_content[:MAX_DOC_TOKENS]
+            prompt = f"Document content:\n{truncated_content}\n\nUser question: {user_input}\nAnswer:"
+        else:
+            prompt = f"User question: {user_input}\nAnswer:"
+        # prompt = (
+        #     f"Document content:\n{document_content}\n\nUser question: {user_input}\nAnswer:"
+        #     if document_content
+        #     else f"User question: {user_input}\nAnswer:"
+        # )
         try:
             response = cohere_client.generate(
                 model=llm_model,
